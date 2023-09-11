@@ -14,7 +14,7 @@
 }
 
 .App-header {
-  background-color: black;
+  background-color: #282c34;
   min-height: 10vh;
   display: flex;
   flex-direction: column;
@@ -70,9 +70,16 @@
   border-radius: 1rem;
   margin: 0 5%;
   padding-top: 1rem;
-  overflow: scroll;
+  /* overflow: scroll; */
   scrollbar-width: thick;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
 }
+
+/* .messageEndRef {
+  margin: 5%;
+} */
 
 .avatar {
   height: 3rem;
@@ -88,13 +95,51 @@
   top: -0.5rem;
 }
 
+.inputBox {
+  z-index: 10001;
+}
+
 .EditorBlock {
-  margin: 0 10%;
+  margin: 10% 10%;
   border-radius: 1rem;
   display: flex;
   flex-direction: column;
   position: relative;
   height: 20vh;
+}
+
+.landingPageContainer {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  /* background-color: lightgray; */
+}
+
+.landingLogoDiv {
+  height: 10rem;
+  width: 20rem;
+  /* background-color: aquamarine; */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.landingInputDiv {
+  height: 10rem;
+  width: 20rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* background-color: aqua; */
+}
+.landingLogoImg {
+  object-fit: scale-down;
+  height: 60%;
+  width: 60%;
 }
 
 .PostBtn {
