@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Author } from "./Author";
 import { color } from "../services/Color";
 import { InputWithButton } from "../ui/InputText";
-import { LeadGrid } from "../ui/grid";
+import { LeadGrid } from "../ui/Grid";
 import { Container, Grid, SimpleGrid, Skeleton, useMantineTheme, rem, Flex } from '@mantine/core';
 
 type landingPageType = {
