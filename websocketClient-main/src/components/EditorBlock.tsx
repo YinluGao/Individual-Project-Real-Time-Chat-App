@@ -1,35 +1,52 @@
 import { randomUUID } from 'crypto'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Author } from './Author'
 import { color } from '../services/Color'
 import { PostObj } from './Post'
 import { v4 as uuidv4 } from 'uuid';
 import { outMessageType } from '../services/SomeTypes'
+import { InputWithButton } from '../ui/InputText'
 
 type EditorBlockType = {
     author: Author | null,
+    changedPost : PostObj | null,
     // getNewPost: (post: PostObj) => void,
     // sendMessage : (outMessage: string) =>void,
     getPost : (newPost: PostObj) => void,
+    getChangedPost : (newPost: PostObj) => void,
     //setOutMessage : (prev : outMessageType ) => void
 }
 
-export const EditorBlock = ({ author, getPost}: EditorBlockType) => {
+export const EditorBlock = ({ author, getPost, changedPost, getChangedPost}: EditorBlockType) => {
     const [title, setTitle] = useState<string>("");
     const [content, setContent] = useState<string>("");
+    const [placeholder, setPlaceholder] = useState<string>("");
 
-    const handlePost = () => {
+    useEffect(() => {
+        if (changedPost !== null) {
+            console.log("it is changed post", changedPost.content);
+            setContent(changedPost.content);
+            setPlaceholder(changedPost.content);
+        }
+
+    }, [changedPost])
+
+    const handlePost = (text : string) => {
         let post: PostObj = {
-            id: uuidv4(),
+            id: changedPost ? changedPost.id : uuidv4(),
             title: title,
-            content: content,
+            content: text,
             created: new Date(Date.now()),
             author: author!
         }
         setTitle("");
         setContent("");
-        (post.content !== "") && getPost(post);
-        //getNewPost(post);
+        if (post.content !== "") {
+            if (changedPost) {
+                getChangedPost(post);
+            }
+            else getPost(post);
+        }
     }
 
     return (
@@ -37,20 +54,13 @@ export const EditorBlock = ({ author, getPost}: EditorBlockType) => {
             style={{ backgroundColor: color.c4 }}>
             <div className='Editor-Author'>
                 <img className='avatar' src={author?.avatar} />
-                <span>Author: {author?.name}</span>
+                <span> {author?.name}</span>
             </div>
-            {/* <div className='Editor-Title'>
-                <span>Title</span>
-                <input onChange={(e) => setTitle(e.target.value)}
-                    value={title}></input>
-            </div> */}
-            <input className='Editor-Content' onChange={e => setContent(e.target.value)} value={content} />
-            <button
-                className='PostBtn'
-                style={{ backgroundColor: color.c1 }}
-                onClick={handlePost}>
-                Post
-            </button>
+            <div className='Editor-Content '>
+                {(content || content === "") && <InputWithButton text={content} placeholder={placeholder} getName={handlePost}/>}
+                {/* <input value = {content} getName = {handlePost}/>
+                <button /> */}
+            </div>
         </div>
     )
 }

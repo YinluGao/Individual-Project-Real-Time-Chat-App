@@ -1,28 +1,31 @@
-import { PostObj } from "../components/Post";
-import { outMessageType } from "./SomeTypes";
+import { PostObj } from "../components/Post"
 import { outDTO } from "./SomeTypes";
 
 export const ProcessIncomingData = (incomingData: string, oldPosts : PostObj[]) => {
 
-    var {outMessage, prevPosts} : outDTO = JSON.parse(incomingData);
-   
-    console.log(outMessage,prevPosts);
-        var newAddedPosts: PostObj[] = prevPosts.length !== 0 ? prevPosts.concat(outMessage.added) 
-        : oldPosts.concat(outMessage.added);
-        
-        //console.log("newAddedposts",newAddedPosts);
-    // 3.2 change posts
-        var newPosts: PostObj[] = [];
-        newAddedPosts.forEach(p => {
-            var result = outMessage.changed.filter(o => o.id === p.id)
-            newPosts.push(result.length === 0 ? p : result[0] );
-        })
-        console.log("deltetIds",outMessage.deletedIds,"newPosts", newPosts);
-    // 3.3 delete posts
-        var posts = newPosts.filter(p => !outMessage.deletedIds.includes(p.id));
-        console.log("after Delete", posts);
-    // 3.4 set new posts
-        
-    //setPosts((prev) => prev.concat(JSON.parse(lastMessage.data)));
-    return posts;
+    let {outMessage, prevPosts} : outDTO = JSON.parse(incomingData);
+
+    const CombinePosts = (posts: PostObj[], newEntry : PostObj) => {
+        let filteredPosts = posts.filter(p => p.id === newEntry.id);
+        if (posts.length === 0) return posts.concat(newEntry);
+        else if (filteredPosts.length !== 0) 
+            return posts;
+        else return posts.concat(newEntry);
+    }
+
+    let newPosts: PostObj[] = [];
+
+        if (outMessage.added.length !== 0) 
+            return CombinePosts(oldPosts, outMessage.added[0]);
+        else if (outMessage.deletedIds.length !== 0) {
+            let posts = oldPosts.filter(p => !outMessage.deletedIds.includes(p.id))
+            return posts;
+        } else if (outMessage.changed.length !== 0) {
+            let changedPost = outMessage.changed[0];
+            oldPosts.forEach(p => {
+                    if (p.id === changedPost.id ) newPosts.push(changedPost);
+                    else newPosts.push(p);
+                })
+        }
+    return newPosts;
 }

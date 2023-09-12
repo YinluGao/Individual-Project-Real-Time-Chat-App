@@ -1,23 +1,31 @@
 import { TextInput, ActionIcon, useMantineTheme } from '@mantine/core';
 import { IconSearch, IconArrowRight, IconArrowLeft } from "@tabler/icons-react";
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import { getNameOfDeclaration } from 'typescript';
+import { colorType } from '../services/Color';
  
 type TextInputProps = {
-  // color : string [],
+  // color : colorType,
   getName : (value : string) => void,
   text : string,
+  placeholder : string,
   // getName : (value : string) => void
 }
 
 export function InputWithButton(props: TextInputProps) {
   const theme = useMantineTheme();
-  const [name , setName] = useState<string>("");
+  const [name , setName] = useState<string>(props.text);
+  const [placeholder, setPlaceholder] = useState<string> (props.placeholder)
+
+  // useEffect(()=>{
+  //   if (props.text !== "") setName(props.text);
+
+  // },[])
 
   const handleClick = () => {
-    console.log(name+"from inputbox");
     props.getName(name);
     setName("");
+    setPlaceholder("");
   }
 
   return (
@@ -36,8 +44,9 @@ export function InputWithButton(props: TextInputProps) {
           )}
         </ActionIcon>
       }
-      placeholder={props.text}
+      placeholder={placeholder}
       rightSectionWidth={42}
+      value={name}
       onChange = {(e:any)=> setName(e.target.value) }
     />
   );

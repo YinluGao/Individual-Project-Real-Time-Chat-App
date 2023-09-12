@@ -7,68 +7,45 @@ import { PostObj, Post } from './components/Post';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { LandingPage } from './components/LandingPage';
 import { Author } from './components/Author';
-import { color } from './services/Color';
+import { colors, colorType } from './services/Color';
 import { EmptyPage } from './pages/EmptyPage';
 import { EditorBlock } from './components/EditorBlock';
 import { outDTO, outMessageType } from './services/SomeTypes';
 import { ProcessIncomingData } from './services/IncomingData';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ErrorPage } from './pages/ErrorPage';
+import Header from './pages/Header';
+import Footer from './pages/Footer';
 
 function App() {
   const [status, setStatus] = useState<string>("Landing");
   const [posts, setPosts] = useState<PostObj[]>([]);
   const [socketUrl, setSocketUrl] = useState<string>('ws://127.0.0.1:5501/EchoAll');
-  const [author, setAuthor] = useState<Author | null> (null);
+  const [author, setAuthor] = useState<Author | null>(null);
   const messageEndRef = useRef<null | HTMLDivElement>(null);
-  
-  const [outMessage, setOutMessage] = useState<outMessageType>({changed:[] ,added:[] , deletedIds:[]});
-
-  const getAuthor = (author: Author) => { setAuthor(author);}
-  const getNewPost = (post : PostObj) => {
-     setOutMessage ((prev) => {
-            return {
-            changed: prev.changed,
-            added: [...prev.added, post],
-            deletedIds : prev.deletedIds
-        }});
-  }
-  const getDeleteId = (id:string) => {
-    console.log("delete id ",id);
-    setOutMessage ((prev) => {
-      return {
-      changed: prev.changed,
-      added: prev.added,
-      deletedIds : prev.deletedIds.concat(id)
-  }});
-  } 
-
+  const [color, setColor] = useState<colorType>(colors[Math.floor(Math.random() * colors.length)]);
+  const [changedPost, setChangedPost] = useState<PostObj | null> (null);
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
-
+  
   useEffect(() => {
+    console.log("Trigger receing message ",lastMessage);
     if (lastMessage !== null && lastMessage.data !== null) {
-      setPosts(ProcessIncomingData(lastMessage.data,posts));
+      setPosts(ProcessIncomingData(lastMessage.data, posts));
     }
   }, [lastMessage]);
-
-  useEffect(()=>{
-    messageEndRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
-  },[posts])
-
-  // messageEndRef.current.value = "";
-
-  const getPost = (newPost : PostObj) => {
-    console.log(newPost);
-    sendMessage(JSON.stringify({outMessage:{changed:[] ,added:[newPost] , deletedIds:[]},prevPosts:posts}));
-  }
   
-  // const handleClickSendMessage = 
-  //   useCallback(
-  //   () => {
-  //   sendMessage(JSON.stringify({outMessage:outMessage,prevPosts:posts}));
-  //   setOutMessage({changed:[] ,added:[] , deletedIds:[]});
-  //   }
-  //   , [outMessage]);
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
+  }, [posts])
+  
+  const getAuthor = (author: Author) => { setAuthor(author) };
+  const getDeleteId = (id: string) => sendMessage(JSON.stringify({ outMessage: { changed: [], added: [], deletedIds: [id] }, prevPosts: posts }));
+  const getChangedId = (id: string) => setChangedPost(posts.find(p => p.id === id) ?? null);
+  const getPost = (newPost: PostObj) => sendMessage(JSON.stringify({ outMessage: { changed: [], added: [newPost], deletedIds: [] }, prevPosts: posts }));
+  const getChangedPost = (newPost: PostObj) => {
+    sendMessage(JSON.stringify({ outMessage: { changed: [newPost], added: [], deletedIds: [] }, prevPosts: posts }));
+    setChangedPost(null);
+  }
 
   const connectionStatus = {
     [ReadyState.CONNECTING]: 'Connecting',
@@ -80,33 +57,34 @@ function App() {
 
   return (
     <div className="App" >
-     
+      <Header />
       <div className='body'>
-        {status === "Landing" && <LandingPage 
-          setStatus={setStatus} getAuthor={getAuthor} logo = {logoCat} />}
+        {status === "Landing" && <LandingPage
+          setStatus={setStatus}
+          getAuthor={getAuthor}
+          logo={logoCat}
+          color={color} />}
         {status == "Content" &&
-          <div>
-            <p>WebSocket is {connectionStatus}</p>
-            <div className='Posts' style={{backgroundColor: color.c3}}>
-            {
-              posts.length == 0 ?
-              < EmptyPage/> : posts.map((p, index) => 
-                <Post key={index} post={p} getDeleteId={getDeleteId}/>)
-            }
-              <div className='messageEndRef' ref = {messageEndRef} />
+          <div className='main' style={{backgroundColor: color.c1, margin:" 0 1rem", paddingBottom:"0.1rem", borderRadius:"1rem"}}>
+            <p className='infoWS'>Chat channel is {connectionStatus}</p>
+            <div className='Posts' style={{ backgroundColor: color.c2 }}>
+              {
+                (posts.length === 0) ?
+                  < EmptyPage /> : posts.map((p, index) =>
+                    <Post key={index} owner={author} post={p} getDeleteId={getDeleteId} getChangedId = {getChangedId} />)
+              }
+              <div className='messageEndRef' ref={messageEndRef} />
             </div>
-            {/* <button className='barButton-confirm'
-              onClick={handleClickSendMessage}
-              disabled={readyState !== ReadyState.OPEN}>
-              Confirm Updates
-            </button> */}
-            <EditorBlock 
-              author = {author} 
-              //getNewPost = {getNewPost} 
-              getPost = {getPost}/>
+            <EditorBlock
+              author={author}
+              changedPost = {changedPost}
+              getPost={getPost} 
+              getChangedPost = {getChangedPost}
+              />
           </div>
         }
       </div>
+      <Footer />
     </div>
   );
 }
