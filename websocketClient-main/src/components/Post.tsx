@@ -50,3 +50,4 @@ export const Post = ({ post, owner, getDeleteId, getChangedId }: props) => {
     )
 }
 
+
