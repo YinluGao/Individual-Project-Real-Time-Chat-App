@@ -1,7 +1,7 @@
 const Footer = () => {
     return (
         <div className="Footer">
-            Created by Claire Yinlu GAO
+            @ Created by Claire Yinlu Gao
         </div>
     )
 }
